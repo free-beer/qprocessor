@@ -29,4 +29,4 @@ TODO: Write usage instructions here
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/woodzer/qprocessor.
+Bug reports and pull requests are welcome on GitHub at https://github.com/free-beer/qprocessor.
