@@ -1,5 +1,7 @@
 require "aws-sdk-sqs"
 require "aws-sdk-sts"
+require "qprocessor/sqs_message"
+require "pp"
 
 module QProcessor
   class SQSSource
@@ -15,17 +17,17 @@ module QProcessor
     # This method blocks until a job is available, at which points it is
     # returned.
     def get
-      entry  = nil
-      client = sqs_client
-      url    = sqs_queue_url
-      while entry.nil?
-        result = client.receive_message(max_number_of_messages: 1,
-                                        queue_url:              url,
-                                        wait_time_seconds:      MAX_MESSAGE_WAIT)
-        entry = SQSMessage.new(result.messages[0], client, url) if result.messages.empty?
+      message = nil
+      client  = sqs_client
+      url     = sqs_queue_url(sqs_queue_name)
+      while message.nil?
+        result  = client.receive_message(max_number_of_messages: 1,
+                                         queue_url:              url,
+                                         wait_time_seconds:      MAX_MESSAGE_WAIT)
+        message = QProcessor::SQSMessage.new(result.messages[0], client, url) if !result.messages.empty?
       end
-      yield entry if block_given?
-      entry
+      yield message if block_given?
+      message
     end
 
   private
@@ -75,6 +77,14 @@ module QProcessor
     # are missing an exception will be raised.
     def sqs_client
       Aws::SQS::Client.new(credentials: aws_credentials, region: aws_region)
+    end
+
+    # Attempts to fetch the SQS queue name from environment variables, raising
+    # an exception if not found.
+    def sqs_queue_name
+      @sqs_queue_name ||= ENV["SQS_QUEUE_NAME"]
+      raise "The SQS_QUEUE_NAME environment variable has not been set." if @sqs_queue_name.nil?
+      @sqs_queue_name
     end
 
     # Generates an URL for use with a specific AWS SQS queue.

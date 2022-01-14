@@ -4,7 +4,7 @@ module QProcessor
   # library classes.
   class Message
     def initialize(source)
-      @source
+      @source = source
     end
     attr_reader :source
 
