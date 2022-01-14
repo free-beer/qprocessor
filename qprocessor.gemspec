@@ -29,7 +29,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Uncomment to register a new dependency of your gem
-  # spec.add_dependency "example-gem", "~> 1.0"
+  spec.add_dependency "aws-sdk-sqs", "~> 1.49"
+  spec.add_dependency "aws-sdk-sts", "~> 1.5"
   spec.add_dependency "beaneater", "~> 1.1"
 
   # For more information and examples about making a new gem, checkout our

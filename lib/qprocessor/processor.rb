@@ -1,19 +1,14 @@
 require "beaneater"
 require "logger"
+require "qprocessor/sources"
 
 module QProcessor
   # This class encapsulates a lot of the functionality around creating a queue
   # processor that pulls work from a queue and passes it to an instance of a
   # specified class for 'handling'.
   class Processor
-    # A constant for a regular expression to match Beanstalk URLs
-    BEANSTALK_URL_PATTERN = /^beanstalk:\/\/([^:\/]+)[:]?([\d]*)[\/]?(.*)$/
-
     # A constant with the name of the default job parser class.
     DEFAULT_PARSER_CLASS = "QProcessor::YAMLParser"
-
-    # The default Beanstalk tube name.
-    DEFAULT_TUBE_NAME = "default"
 
     # A constant containing the maximum permitted setting for the inter-error sleep interval.
     MAX_ERROR_RESTART_INTERVAL = 32
@@ -21,7 +16,6 @@ module QProcessor
     # Constructor for the Processor class.
     #
     # @param [String] The name assigned to the processor, primarily used for logging.
-    # @param [String] The URL to be used when connecting to the queue system.
     # @param [Hash] A Hash of the class names used by the processor. There are two
     #               keys recognised in this Hash - :parser and :processor. The
     #               :parser class should be the fully qualified name of the class
@@ -30,13 +24,14 @@ module QProcessor
     #               process jobs.
     # @param [Hash] A Hash of additional settings that will be used by the processor.
     #               Valid keys include :logger and :reuse_processor.
-    def initialize(name, url, class_names, settings={})
+    def initialize(name, class_names, settings={})
       @instance        = nil
       @name            = name
       @parser_class    = get_class!(class_names.fetch(:parser, DEFAULT_PARSER_CLASS))
       @processor_class = get_class!(class_names[:processor])
       @queue_url       = url
       @settings        = {}.merge(settings)
+      @source          = get_source
       @terminate       = false
     end
     attr_reader :class_name, :name,  :queue_url, :settings
@@ -44,12 +39,12 @@ module QProcessor
     # Starts processing of the queue. This method will not return to the caller
     # as it will run a loop processing the queue jobs as they become available.
     def start
-      queue    = connect
+      queue    = QProcessor::Sources.manufacture!
       interval = 0
       while !@terminate
         begin
           logger.debug("The '#{name}' queue processor is listening for jobs.")
-          queue.reserve do|job|
+          queue.get do|job|
             logger.debug "The '#{name}' queue processor received job id #{job.id}."
             handle(job)
             interval = 0
@@ -65,21 +60,6 @@ module QProcessor
     end
 
   private
-
-    def beanstalk_connect
-      match = BEANSTALK_URL_PATTERN.match(queue_url)
-      raise QProcessor::Error("Invalid Beanstalk queue URL '#{queue_url}' specified.") if !match
-      beanstalk = Beaneater.new("#{match[1]}#{match[2] == "" ? "" : ":#{match[2]}"}")
-      beanstalk.tubes[match[3] != "" ? match[3] : DEFAULT_TUBE_NAME]
-    end
-
-    def connect
-      if queue_url[0, 9] == "beanstalk"
-        beanstalk_connect
-      else
-        raise QProcessor::Error.new("Unrecognised queue URL '#{queue_url}' encountered")
-      end
-    end
 
     def get_class(name)
       name.split("::").reduce(Object) {|t, e| (!t.nil? ? t.const_get(e) : nil)}
