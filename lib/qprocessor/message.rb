@@ -6,6 +6,7 @@ module QProcessor
     def initialize(source)
       @source
     end
+    attr_reader :source
 
     # Retrieves the content of the message/job as a String.
     def body
