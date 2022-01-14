@@ -29,9 +29,7 @@ module QProcessor
       @name            = name
       @parser_class    = get_class!(class_names.fetch(:parser, DEFAULT_PARSER_CLASS))
       @processor_class = get_class!(class_names[:processor])
-      @queue_url       = url
       @settings        = {}.merge(settings)
-      @source          = get_source
       @terminate       = false
     end
     attr_reader :class_name, :name,  :queue_url, :settings
@@ -44,10 +42,15 @@ module QProcessor
       while !@terminate
         begin
           logger.debug("The '#{name}' queue processor is listening for jobs.")
-          queue.get do|job|
-            logger.debug "The '#{name}' queue processor received job id #{job.id}."
-            handle(job)
-            interval = 0
+          queue.get do|message|
+            begin
+              logger.debug "The '#{name}' queue processor received message id #{message.id}."
+              handle(message)
+              interval = 0
+            rescue => error
+              message.release
+              raise
+            end
           end
         rescue => error
           logger.error "The '#{name}' queue processor caught an exception.\nType: #{error.class.name}\n"\

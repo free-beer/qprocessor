@@ -1,4 +1,5 @@
 require "beaneater"
+require "qprocessor/beanstalk_message"
 
 module QProcessor
   class BeanstalkSource
@@ -16,10 +17,10 @@ module QProcessor
     # This method blocks until a job is available, at which points it is
     # returned.
     def get
-      job = connection.reserve
-      job = OpenStruct.new(body: job.body, id: job.id)
-      yield job if block_given?
-      job
+      job     = connection.reserve
+      message = QProcessor::BeanstalkMessage.new(job)
+      yield message if block_given?
+      message
     end
 
   private

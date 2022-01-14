@@ -15,14 +15,14 @@ module QProcessor
     # This method blocks until a job is available, at which points it is
     # returned.
     def get
-      entry = nil
+      entry  = nil
+      client = sqs_client
+      url    = sqs_queue_url
       while entry.nil?
-        result = sqs_client.receive_message(max_number_of_messages: 1,
-                                            queue_url:              sqs_queue_url,
-                                            wait_time_seconds:      MAX_MESSAGE_WAIT)
-        if result.messages.empty?
-          entry = OpenStruct.new(body: result.messages[0].body, id: result.messages[1].message_id)
-        end
+        result = client.receive_message(max_number_of_messages: 1,
+                                        queue_url:              url,
+                                        wait_time_seconds:      MAX_MESSAGE_WAIT)
+        entry = SQSMessage.new(result.messages[0], client, url) if result.messages.empty?
       end
       yield entry if block_given?
       entry
