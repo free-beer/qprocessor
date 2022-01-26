@@ -32,6 +32,10 @@ Gem::Specification.new do |spec|
   spec.add_dependency "aws-sdk-sqs", "~> 1.49"
   spec.add_dependency "aws-sdk-sts", "~> 1.5"
   spec.add_dependency "beaneater", "~> 1.1"
+  spec.add_dependency "ox", "~> 2.14"
+
+  # Development dependency.
+  spec.add_development_dependency "rspec"
 
   # For more information and examples about making a new gem, checkout our
   # guide at: https://bundler.io/guides/creating_gem.html

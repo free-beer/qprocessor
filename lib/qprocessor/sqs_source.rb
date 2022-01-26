@@ -63,15 +63,6 @@ module QProcessor
       @aws_secret_key
     end
 
-    def connection
-      if !@connection
-        url = beanstalk_url
-        raise "No BEANSTALK_URL environment variable set." if url.nil?
-        @connection ||= Beaneater.new(url)
-      end
-      @connection
-    end
-
     # Fetches a Aws::SQS::Client instance using AWS credentials and region
     # details that are read from environment settings. If any of these settings
     # are missing an exception will be raised.
