@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    qprocessor (0.2.0)
+    qprocessor (0.3.0)
       aws-sdk-sqs (~> 1.49)
       aws-sdk-sts (~> 1.5)
       beaneater (~> 1.1)
