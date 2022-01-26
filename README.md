@@ -55,7 +55,7 @@ require "qprocessor"
 require "processor_class"
 
 begin
-  processor = QProcessor::Processor.new("My Processor", {processor: "ProcessorClass"}, logger: logger)
+  processor = QProcessor::Processor.new(ProcessorClass, logger: logger)
   processor.start
 rescue => error
   STDERR.puts "ERROR: #{error}\n#{error.backtrace.join("\n")}"
@@ -65,10 +65,9 @@ end
 First thing this does is require in the qprocessor library and then the processor
 class (as outlined in the previous section). Next it creates an instance of the
 ``QProcessor::Processor`` class, passing it at least two parameters. The first
-parameter is the name of the processor which can be a ``String`` containing
-whatever is appropriate (this is purely for labelling purposes). The second
-parameter should be a ``Class`` in which is a reference to the processor class
-created in the previous section.
+parameter is a reference to the Processor class that will be used by this
+instance to handle entries read from the queue. This should be an instance of
+the ``Class`` class.
 
 The constructor accepts additional parameters in the form of a ``Hash`` of
 settings. These settings will be passed down to the processor class whenever
