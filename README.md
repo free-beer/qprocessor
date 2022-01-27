@@ -39,12 +39,11 @@ The processor class is a standard Ruby class that obeys the following rules...
  2. It implements a ``process()`` method that takes a single parameter. This
     parameter will be the message that was obtained from the queue. The
     message has a ``body()`` accessor method that grants access to a ``String``
-    containing the message contents that are to be processed. The ``process()``
-    method should conduct whatever work is needed based on the message. If
-    processing of the message is complete then the ``process()`` method should
-    call the ``dispose()`` method of the message parameter received as this
-    informs the queuing mechanism that the message has been completely dealt
-    with and should not be issued to any other requesters.
+    containing the message contents that are to be processed. If the
+    ``process()`` method throws an exception the messasge will be 'released'
+    back to it's origin queue. If the method completes without raising an
+    exception then the message will automatically be removed from it's origin
+    queue.
 
 ### The Service
 
