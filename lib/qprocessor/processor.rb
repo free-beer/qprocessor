@@ -19,7 +19,7 @@ module QProcessor
     #               such as configuration or settings.
     def initialize(processor, settings={})
       @instance        = nil
-      @name            = processor.class.name
+      @name            = processor.name
       @processor_class = processor
       @settings        = {}.merge(settings)
       @terminate       = false
